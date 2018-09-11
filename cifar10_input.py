@@ -62,9 +62,10 @@ def _generate_image_and_label_batch(image,label,min_queue_examples,batch_size):
     *创建了一个shuffling queue，用于把‘tensors’中的tensors压入该队列； 
     *一个dequeue_many操作，用于根据队列中的数据创建一个batch； 
     *创建了一个QueueRunner对象，用于启动一个进程压数据到队列 
-    capacity参数用于控制shuffling queue的最大长度；min_after_dequeue参数表示进行一次dequeue操作后队列中元素的最小数量，
-    可以用于确保batch中 
-    元素的随机性；num_threads参数用于指定多少个threads负责压tensors到队列；
+    capacity参数用于控制shuffling queue的最大长度；
+    min_after_dequeue参数表示进行一次dequeue操作后队列中元素的最小数量，
+    可以用于确保batch中元素的随机性；
+    num_threads参数用于指定多少个threads负责压tensors到队列；
     enqueue_many参数用于表征是否tensors中的每一个tensor都代表一个样例 
     tf.train.batch()与之类似，只不过顺序地出队列（也即每次只能从一个data文件中读取batch），少了随机性。'''
     tf.image_summary('images',images)
@@ -91,8 +92,10 @@ def distorted_input(data_dir,batch_size):
         distorted_image=tf.image.random_flip_left_right(distorted_image) #随机地左右翻转图像
         distorted_images=tf.image.random_brightness(distorted_image,max_delta=63)#随机调节图像的亮度
         distorted_image=tf.image.random_contrast(distorted_image,lower=0.2,upper=1.8)#随机地调整图像对比度
-        float_image=tf.image.per_image_whitening(distorted_image)#对图像进行whiten操作，目的是降低输入图像的冗余性，尽量去除输入特征间的相关性
-        min_fraction_of_examples_in_queue=0.4 #用于确保读取到的batch中样例的随机性，使其覆盖到更多的类别、更多的数据文件！！！
+        float_image=tf.image.per_image_whitening(distorted_image)
+      #对图像进行whiten操作，目的是降低输入图像的冗余性，尽量去除输入特征间的相关性
+        min_fraction_of_examples_in_queue=0.4 
+       #用于确保读取到的batch中样例的随机性，使其覆盖到更多的类别、更多的数据文件！！！
         min_queue_examples=int(num_examples_per_epoch_for_train*min_fraction_of_examples_in_queue)
         print('Filling queue with %d CIFAR image before starting to train,this will take a few minutes.'% min_queue_examples)
         return _generate_image_and_label_batch(foat_image,read_input.label,min_queue_examples,batch_size)
